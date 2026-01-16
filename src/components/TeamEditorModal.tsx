@@ -54,11 +54,30 @@ export const TeamEditorModal: React.FC<TeamEditorModalProps> = ({
     }
   };
 
-  if (!isOpen) return null;
+  React.useEffect(() => {
+    if (isOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, [isOpen]);
+
+  if (!isOpen) {
+    return null;
+  }
 
   return (
-    <div className="modal-overlay" onClick={onClose}>
-      <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+    <div 
+      className="modal-overlay" 
+      onClick={onClose}
+    >
+      <div 
+        className="modal-content" 
+        onClick={(e) => e.stopPropagation()}
+      >
         <div className="modal-header">
           <h2>Редактировать команды</h2>
           <button className="close-button" onClick={onClose}>×</button>
@@ -69,6 +88,15 @@ export const TeamEditorModal: React.FC<TeamEditorModalProps> = ({
             {editedTeams.map((team, index) => (
               <div key={team.id} className="team-editor-row">
                 <div className="team-number">{index + 1}</div>
+                <div className="team-logo-preview">
+                  {team.logoUrl ? (
+                    <img src={team.logoUrl} alt={team.name} onError={(e) => {
+                      (e.target as HTMLImageElement).style.display = 'none';
+                    }} />
+                  ) : (
+                    <div className="logo-placeholder">?</div>
+                  )}
+                </div>
                 <input
                   type="text"
                   value={team.name}

@@ -318,14 +318,12 @@ export const BracketPage: React.FC = () => {
         onUpdate={handleMatchUpdate}
       />
 
-      {isAdmin && (
-        <TeamEditorModal
-          teams={bracketState.teams}
-          isOpen={isTeamEditorOpen}
-          onClose={() => setIsTeamEditorOpen(false)}
-          onSave={handleTeamsSave}
-        />
-      )}
+      <TeamEditorModal
+        teams={bracketState.teams}
+        isOpen={isTeamEditorOpen && isAdmin}
+        onClose={() => setIsTeamEditorOpen(false)}
+        onSave={handleTeamsSave}
+      />
     </div>
   );
 };
