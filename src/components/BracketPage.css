@@ -1,0 +1,434 @@
+.bracket-page {
+  min-height: 100vh;
+  background: #0a0a0f;
+  color: #fff;
+  padding: 20px;
+  position: relative;
+  overflow: hidden;
+}
+
+/* Игровой фон с анимацией */
+.bracket-page::before {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: 
+    radial-gradient(circle at 20% 50%, rgba(74, 158, 255, 0.15) 0%, transparent 50%),
+    radial-gradient(circle at 80% 80%, rgba(255, 68, 68, 0.15) 0%, transparent 50%),
+    radial-gradient(circle at 40% 20%, rgba(68, 255, 68, 0.1) 0%, transparent 50%),
+    linear-gradient(135deg, #0a0a0f 0%, #1a1a2e 50%, #0f0f1a 100%);
+  z-index: 0;
+  animation: backgroundPulse 8s ease-in-out infinite;
+}
+
+/* Сетка в стиле CS2 */
+.bracket-page::after {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-image: 
+    linear-gradient(rgba(74, 158, 255, 0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(74, 158, 255, 0.03) 1px, transparent 1px);
+  background-size: 50px 50px;
+  z-index: 0;
+  animation: gridMove 20s linear infinite;
+  pointer-events: none;
+}
+
+@keyframes backgroundPulse {
+  0%, 100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.8;
+    transform: scale(1.05);
+  }
+}
+
+@keyframes gridMove {
+  0% {
+    transform: translate(0, 0);
+  }
+  100% {
+    transform: translate(50px, 50px);
+  }
+}
+
+.bracket-page > * {
+  position: relative;
+  z-index: 1;
+}
+
+.tournament-header {
+  background: linear-gradient(135deg, rgba(42, 42, 62, 0.9) 0%, rgba(30, 30, 46, 0.9) 100%);
+  backdrop-filter: blur(10px);
+  border: 2px solid rgba(74, 158, 255, 0.3);
+  border-radius: 16px;
+  padding: 24px;
+  margin-bottom: 24px;
+  box-shadow: 
+    0 4px 12px rgba(0, 0, 0, 0.5),
+    0 0 20px rgba(74, 158, 255, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  position: relative;
+  overflow: hidden;
+  animation: headerGlow 3s ease-in-out infinite;
+}
+
+.tournament-header::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: linear-gradient(45deg, transparent, rgba(74, 158, 255, 0.1), transparent);
+  animation: headerShine 4s linear infinite;
+}
+
+@keyframes headerGlow {
+  0%, 100% {
+    box-shadow: 
+      0 4px 12px rgba(0, 0, 0, 0.5),
+      0 0 20px rgba(74, 158, 255, 0.1),
+      inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  }
+  50% {
+    box-shadow: 
+      0 4px 12px rgba(0, 0, 0, 0.5),
+      0 0 30px rgba(74, 158, 255, 0.2),
+      inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  }
+}
+
+@keyframes headerShine {
+  0% {
+    transform: translateX(-100%) translateY(-100%) rotate(45deg);
+  }
+  100% {
+    transform: translateX(100%) translateY(100%) rotate(45deg);
+  }
+}
+
+.header-content {
+  text-align: center;
+}
+
+.tournament-header h1 {
+  margin: 0 0 12px 0;
+  font-size: 36px;
+  font-weight: 700;
+  background: linear-gradient(135deg, #fff 0%, #4a9eff 50%, #fff 100%);
+  background-size: 200% 200%;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  animation: textShimmer 3s ease-in-out infinite;
+  text-shadow: 0 0 30px rgba(74, 158, 255, 0.5);
+  position: relative;
+  z-index: 1;
+}
+
+@keyframes textShimmer {
+  0%, 100% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+}
+
+.header-info {
+  display: flex;
+  justify-content: center;
+  gap: 24px;
+  flex-wrap: wrap;
+}
+
+.tournament-dates,
+.tournament-organizer {
+  color: #aaa;
+  font-size: 14px;
+}
+
+.controls-panel {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: linear-gradient(135deg, rgba(42, 42, 62, 0.8) 0%, rgba(30, 30, 46, 0.8) 100%);
+  backdrop-filter: blur(10px);
+  border: 2px solid rgba(74, 158, 255, 0.2);
+  border-radius: 12px;
+  padding: 16px 24px;
+  margin-bottom: 24px;
+  flex-wrap: wrap;
+  gap: 12px;
+  box-shadow: 
+    0 4px 12px rgba(0, 0, 0, 0.3),
+    0 0 15px rgba(74, 158, 255, 0.05);
+  position: relative;
+  z-index: 1;
+}
+
+.controls-left,
+.controls-right {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.admin-toggle {
+  padding: 10px 20px;
+  border-radius: 8px;
+  border: 2px solid rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.05);
+  color: #fff;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+.admin-toggle::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+  transition: left 0.5s ease;
+}
+
+.admin-toggle:hover::before {
+  left: 100%;
+}
+
+.admin-toggle:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.4);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(255, 255, 255, 0.1);
+}
+
+.admin-toggle.active {
+  background: rgba(255, 215, 0, 0.2);
+  border-color: #ffd700;
+  color: #ffd700;
+  box-shadow: 0 0 20px rgba(255, 215, 0, 0.3);
+  animation: adminPulse 2s ease-in-out infinite;
+}
+
+@keyframes adminPulse {
+  0%, 100% {
+    box-shadow: 0 0 20px rgba(255, 215, 0, 0.3);
+  }
+  50% {
+    box-shadow: 0 0 30px rgba(255, 215, 0, 0.5);
+  }
+}
+
+.control-button {
+  padding: 10px 20px;
+  border-radius: 8px;
+  border: 2px solid #4a9eff;
+  background: rgba(74, 158, 255, 0.2);
+  color: #4a9eff;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(74, 158, 255, 0.2);
+}
+
+.control-button::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.2);
+  transform: translate(-50%, -50%);
+  transition: width 0.6s, height 0.6s;
+}
+
+.control-button:hover::before {
+  width: 300px;
+  height: 300px;
+}
+
+.control-button:hover {
+  background: rgba(74, 158, 255, 0.3);
+  border-color: #6ab0ff;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 15px rgba(74, 158, 255, 0.4);
+}
+
+.control-button:active {
+  transform: translateY(0);
+}
+
+.brackets-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 40px;
+}
+
+.bracket-section {
+  background: rgba(30, 30, 46, 0.6);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(74, 158, 255, 0.2);
+  border-radius: 16px;
+  padding: 24px;
+  box-shadow: 
+    0 4px 12px rgba(0, 0, 0, 0.3),
+    0 0 20px rgba(74, 158, 255, 0.05);
+  position: relative;
+  overflow: hidden;
+}
+
+.bracket-section::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, rgba(74, 158, 255, 0.5), transparent);
+  animation: sectionTopGlow 3s ease-in-out infinite;
+}
+
+@keyframes sectionTopGlow {
+  0%, 100% {
+    opacity: 0.5;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+.bracket-title {
+  text-align: center;
+  margin: 0 0 24px 0;
+  font-size: 24px;
+  font-weight: 600;
+  color: #fff;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.grand-final-section {
+  background: linear-gradient(135deg, rgba(255, 215, 0, 0.1) 0%, rgba(255, 215, 0, 0.05) 100%);
+  border: 2px solid rgba(255, 215, 0, 0.3);
+}
+
+.grand-final-section .bracket-title {
+  color: #ffd700;
+  font-size: 28px;
+}
+
+.bracket-container {
+  display: flex;
+  justify-content: center;
+  gap: 40px;
+  padding: 20px;
+  overflow-x: auto;
+  position: relative;
+}
+
+.bracket-container::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-image: 
+    linear-gradient(to right, transparent 0%, rgba(58, 58, 78, 0.3) 25%, rgba(58, 58, 78, 0.3) 75%, transparent 100%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+.bracket-container > * {
+  position: relative;
+  z-index: 1;
+}
+
+/* Соединительные линии между колонками */
+.bracket-column::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  right: -20px;
+  width: 20px;
+  height: 2px;
+  background: #3a3a4e;
+  z-index: 0;
+}
+
+.bracket-column:last-child::after {
+  display: none;
+}
+
+.lower-bracket {
+  background: rgba(255, 68, 68, 0.05);
+}
+
+.upper-bracket {
+  background: rgba(68, 255, 68, 0.05);
+}
+
+.grand-final {
+  background: rgba(255, 215, 0, 0.1);
+}
+
+/* Адаптивность */
+@media (max-width: 1200px) {
+  .bracket-container {
+    gap: 20px;
+  }
+}
+
+@media (max-width: 768px) {
+  .bracket-container {
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .bracket-column::after {
+    display: none;
+  }
+
+  .controls-panel {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .controls-left,
+  .controls-right {
+    justify-content: center;
+  }
+
+  .brackets-wrapper {
+    gap: 24px;
+  }
+
+  .bracket-section {
+    padding: 16px;
+  }
+}
+
