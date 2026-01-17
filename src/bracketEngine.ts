@@ -144,8 +144,8 @@ export function createInitialBracket(teams: Team[]): Match[] {
     });
   }
 
-  // LB3: 2 матча (проигравшие из SF + победители LB2)
-  for (let i = 0; i < 2; i++) {
+  // LB3: 3 матча (проигравшие из SF + победители LB2)
+  for (let i = 0; i < 3; i++) {
     matches.push({
       id: `lb3-${i + 1}`,
       round: 'LB3',
@@ -160,19 +160,21 @@ export function createInitialBracket(teams: Team[]): Match[] {
     });
   }
 
-  // LB4: 1 матч (победители LB3)
-  matches.push({
-    id: 'lb4-1',
-    round: 'LB4',
-    index: 1,
-    teamAId: null,
-    teamBId: null,
-    scoreA: null,
-    scoreB: null,
-    bestOf: 1,
-    status: 'scheduled',
-    winnerId: null,
-  });
+  // LB4: 2 матча (победители LB3)
+  for (let i = 0; i < 2; i++) {
+    matches.push({
+      id: `lb4-${i + 1}`,
+      round: 'LB4',
+      index: i + 1,
+      teamAId: null,
+      teamBId: null,
+      scoreA: null,
+      scoreB: null,
+      bestOf: 1,
+      status: 'scheduled',
+      winnerId: null,
+    });
+  }
 
   // LF: Lower Final (1 матч) - проигравший из UF + победитель LB4
   matches.push({
@@ -409,23 +411,26 @@ export function propagateWinnersAndLosers(matches: Match[]): Match[] {
     }
   }
 
-  // LB3: проигравшие из SF + победители LB2
+  // LB3: проигравшие из SF + победители LB2 (3 матча)
   const lb3Matches = result.filter(m => m.round === 'LB3').sort((a, b) => a.index - b.index);
   const updatedLb2Matches = result.filter(m => m.round === 'LB2').sort((a, b) => a.index - b.index);
   
-  for (let i = 0; i < 2; i++) {
-    const sfMatch = updatedSfMatches[i];
-    const lb2Match = updatedLb2Matches[i * 2];
-    const lb3Match = lb3Matches[i];
-
-    if (!sfMatch || !lb2Match || !lb3Match) continue;
+  // LB3-1: проигравший SF-1 vs победитель LB2-1
+  if (lb3Matches[0] && updatedSfMatches[0] && updatedLb2Matches[0]) {
+    const sfMatch = updatedSfMatches[0];
+    const lb2Match = updatedLb2Matches[0];
+    const lb3Match = lb3Matches[0];
 
     const hasSfWinner = sfMatch.winnerId !== null && sfMatch.winnerId !== undefined;
     const isSfDone = sfMatch.status === 'done';
     const sfLoser = (hasSfWinner || isSfDone) ? calculateLoser(sfMatch) : null;
     const lb2Winner = lb2Match.winnerId || (lb2Match.status === 'done' ? calculateWinner(lb2Match) : null);
 
-    const needsReset = lb3Match.teamAId !== sfLoser || lb3Match.teamBId !== lb2Winner;
+    // Сбрасываем результаты только если команды изменились И матч ещё не был сыгран
+    const teamAChanged = lb3Match.teamAId !== sfLoser;
+    const teamBChanged = lb3Match.teamBId !== lb2Winner;
+    const isMatchDone = lb3Match.status === 'done';
+    const needsReset = (teamAChanged || teamBChanged) && !isMatchDone;
     
     const lb3Index = result.findIndex(m => m.id === lb3Match.id);
     if (lb3Index !== -1) {
@@ -440,13 +445,69 @@ export function propagateWinnersAndLosers(matches: Match[]): Match[] {
     }
   }
 
-  // LB4: победители LB3
-  const lb4Match = result.find(m => m.round === 'LB4');
+  // LB3-2: проигравший SF-2 vs победитель LB2-2
+  if (lb3Matches[1] && updatedSfMatches[1] && updatedLb2Matches[1]) {
+    const sfMatch = updatedSfMatches[1];
+    const lb2Match = updatedLb2Matches[1];
+    const lb3Match = lb3Matches[1];
+
+    const hasSfWinner = sfMatch.winnerId !== null && sfMatch.winnerId !== undefined;
+    const isSfDone = sfMatch.status === 'done';
+    const sfLoser = (hasSfWinner || isSfDone) ? calculateLoser(sfMatch) : null;
+    const lb2Winner = lb2Match.winnerId || (lb2Match.status === 'done' ? calculateWinner(lb2Match) : null);
+
+    // Сбрасываем результаты только если команды изменились И матч ещё не был сыгран
+    const teamAChanged = lb3Match.teamAId !== sfLoser;
+    const teamBChanged = lb3Match.teamBId !== lb2Winner;
+    const isMatchDone = lb3Match.status === 'done';
+    const needsReset = (teamAChanged || teamBChanged) && !isMatchDone;
+    
+    const lb3Index = result.findIndex(m => m.id === lb3Match.id);
+    if (lb3Index !== -1) {
+      result[lb3Index] = {
+        ...result[lb3Index],
+        teamAId: sfLoser,
+        teamBId: lb2Winner,
+        scoreA: needsReset ? null : result[lb3Index].scoreA,
+        scoreB: needsReset ? null : result[lb3Index].scoreB,
+        winnerId: needsReset ? null : result[lb3Index].winnerId,
+      };
+    }
+  }
+
+  // LB3-3: победитель LB2-3 vs победитель LB2-4
+  if (lb3Matches[2] && updatedLb2Matches[2] && updatedLb2Matches[3]) {
+    const lb2Match3 = updatedLb2Matches[2];
+    const lb2Match4 = updatedLb2Matches[3];
+    const lb3Match = lb3Matches[2];
+
+    const lb2Winner3 = lb2Match3.winnerId || (lb2Match3.status === 'done' ? calculateWinner(lb2Match3) : null);
+    const lb2Winner4 = lb2Match4.winnerId || (lb2Match4.status === 'done' ? calculateWinner(lb2Match4) : null);
+
+    const needsReset = lb3Match.teamAId !== lb2Winner3 || lb3Match.teamBId !== lb2Winner4;
+    
+    const lb3Index = result.findIndex(m => m.id === lb3Match.id);
+    if (lb3Index !== -1) {
+      result[lb3Index] = {
+        ...result[lb3Index],
+        teamAId: lb2Winner3,
+        teamBId: lb2Winner4,
+        scoreA: needsReset ? null : result[lb3Index].scoreA,
+        scoreB: needsReset ? null : result[lb3Index].scoreB,
+        winnerId: needsReset ? null : result[lb3Index].winnerId,
+      };
+    }
+  }
+
+  // LB4: победители LB3 (2 матча)
+  const lb4Matches = result.filter(m => m.round === 'LB4').sort((a, b) => a.index - b.index);
   const updatedLb3Matches = result.filter(m => m.round === 'LB3').sort((a, b) => a.index - b.index);
   
-  if (lb4Match && updatedLb3Matches.length === 2) {
+  // LB4-1: победитель LB3-1 vs победитель LB3-2
+  if (lb4Matches[0] && updatedLb3Matches[0] && updatedLb3Matches[1]) {
     const lb3Match1 = updatedLb3Matches[0];
     const lb3Match2 = updatedLb3Matches[1];
+    const lb4Match = lb4Matches[0];
 
     const winner1 = lb3Match1.winnerId || (lb3Match1.status === 'done' ? calculateWinner(lb3Match1) : null);
     const winner2 = lb3Match2.winnerId || (lb3Match2.status === 'done' ? calculateWinner(lb3Match2) : null);
@@ -466,25 +527,50 @@ export function propagateWinnersAndLosers(matches: Match[]): Match[] {
     }
   }
 
-  // LF: проигравший из UF + победитель LB4
+  // LB4-2: победитель LB3-3 vs победитель LB4-1
+  if (lb4Matches[1] && updatedLb3Matches[2]) {
+    const lb3Match3 = updatedLb3Matches[2];
+    const lb4Match1 = result.find(m => m.round === 'LB4' && m.index === 1);
+    const lb4Match2 = lb4Matches[1];
+
+    const lb3Winner3 = lb3Match3.winnerId || (lb3Match3.status === 'done' ? calculateWinner(lb3Match3) : null);
+    const lb4Winner1 = lb4Match1?.winnerId || (lb4Match1?.status === 'done' ? calculateWinner(lb4Match1!) : null);
+
+    const needsReset = lb4Match2.teamAId !== lb3Winner3 || lb4Match2.teamBId !== lb4Winner1;
+    
+    const lb4Index = result.findIndex(m => m.id === lb4Match2.id);
+    if (lb4Index !== -1) {
+      result[lb4Index] = {
+        ...result[lb4Index],
+        teamAId: lb3Winner3,
+        teamBId: lb4Winner1,
+        scoreA: needsReset ? null : result[lb4Index].scoreA,
+        scoreB: needsReset ? null : result[lb4Index].scoreB,
+        winnerId: needsReset ? null : result[lb4Index].winnerId,
+      };
+    }
+  }
+
+  // LF: проигравший из UF + победитель LB4-2
   const lfMatch = result.find(m => m.round === 'LF');
   const updatedUfMatch = result.find(m => m.round === 'UF');
-  const updatedLb4Match = result.find(m => m.round === 'LB4');
+  const updatedLb4Matches = result.filter(m => m.round === 'LB4').sort((a, b) => a.index - b.index);
+  const updatedLb4Match2 = updatedLb4Matches.find(m => m.index === 2);
   
-  if (lfMatch && updatedUfMatch && updatedLb4Match) {
+  if (lfMatch && updatedUfMatch && updatedLb4Match2) {
     const hasUfWinner = updatedUfMatch.winnerId !== null && updatedUfMatch.winnerId !== undefined;
     const isUfDone = updatedUfMatch.status === 'done';
     const ufLoser = (hasUfWinner || isUfDone) ? calculateLoser(updatedUfMatch) : null;
-    const lb4Winner = updatedLb4Match.winnerId || (updatedLb4Match.status === 'done' ? calculateWinner(updatedLb4Match) : null);
+    const lb4Winner2 = updatedLb4Match2.winnerId || (updatedLb4Match2.status === 'done' ? calculateWinner(updatedLb4Match2) : null);
 
-    const needsReset = lfMatch.teamAId !== ufLoser || lfMatch.teamBId !== lb4Winner;
+    const needsReset = lfMatch.teamAId !== ufLoser || lfMatch.teamBId !== lb4Winner2;
     
     const lfIndex = result.findIndex(m => m.id === lfMatch.id);
     if (lfIndex !== -1) {
       result[lfIndex] = {
         ...result[lfIndex],
         teamAId: ufLoser,
-        teamBId: lb4Winner,
+        teamBId: lb4Winner2,
         scoreA: needsReset ? null : result[lfIndex].scoreA,
         scoreB: needsReset ? null : result[lfIndex].scoreB,
         winnerId: needsReset ? null : result[lfIndex].winnerId,
@@ -517,6 +603,87 @@ export function propagateWinnersAndLosers(matches: Match[]): Match[] {
   }
 
   return result;
+}
+
+/**
+ * Мигрирует структуру сетки, добавляя недостающие матчи и сохраняя существующие результаты
+ */
+export function migrateBracketStructure(matches: Match[], teams: Team[]): Match[] {
+  const lb3Matches = matches.filter(m => m.round === 'LB3').sort((a, b) => a.index - b.index);
+  const lb4Matches = matches.filter(m => m.round === 'LB4').sort((a, b) => a.index - b.index);
+  
+  // Создаём карту существующих матчей для сохранения результатов
+  const existingMatchesMap = new Map<string, Match>();
+  matches.forEach(m => existingMatchesMap.set(m.id, { ...m }));
+  
+  const result = [...matches];
+  
+  // Добавляем недостающие матчи LB3 (должно быть 3)
+  if (lb3Matches.length < 3) {
+    for (let i = lb3Matches.length + 1; i <= 3; i++) {
+      const existingMatch = matches.find(m => m.round === 'LB3' && m.index === i);
+      if (!existingMatch) {
+        result.push({
+          id: `lb3-${i}`,
+          round: 'LB3',
+          index: i,
+          teamAId: null,
+          teamBId: null,
+          scoreA: null,
+          scoreB: null,
+          bestOf: 1,
+          status: 'scheduled',
+          winnerId: null,
+        });
+      }
+    }
+  }
+  
+  // Добавляем недостающие матчи LB4 (должно быть 2)
+  if (lb4Matches.length < 2) {
+    for (let i = lb4Matches.length + 1; i <= 2; i++) {
+      const existingMatch = matches.find(m => m.round === 'LB4' && m.index === i);
+      if (!existingMatch) {
+        result.push({
+          id: `lb4-${i}`,
+          round: 'LB4',
+          index: i,
+          teamAId: null,
+          teamBId: null,
+          scoreA: null,
+          scoreB: null,
+          bestOf: 1,
+          status: 'scheduled',
+          winnerId: null,
+        });
+      }
+    }
+  }
+  
+  // Пересчитываем распространение команд
+  const propagated = propagateWinnersAndLosers(result);
+  
+  // Восстанавливаем результаты существующих матчей, если команды не изменились
+  return propagated.map(match => {
+    const existingMatch = existingMatchesMap.get(match.id);
+    if (existingMatch) {
+      // Если команды не изменились, сохраняем результаты
+      const teamsUnchanged = 
+        match.teamAId === existingMatch.teamAId && 
+        match.teamBId === existingMatch.teamBId;
+      
+      if (teamsUnchanged && existingMatch.status === 'done') {
+        return {
+          ...match,
+          scoreA: existingMatch.scoreA,
+          scoreB: existingMatch.scoreB,
+          winnerId: existingMatch.winnerId,
+          status: existingMatch.status,
+        };
+      }
+    }
+    return match;
+  });
 }
 
 /**

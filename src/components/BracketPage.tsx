@@ -3,7 +3,7 @@ import { BracketState, Match, Team } from '../types';
 import { BracketColumn } from './BracketColumn';
 import { MatchDetailsDrawer } from './MatchDetailsDrawer';
 import { TeamEditorModal } from './TeamEditorModal';
-import { createInitialBracket, updateMatchAndPropagate, resetBracket, propagateWinners } from '../bracketEngine';
+import { createInitialBracket, updateMatchAndPropagate, resetBracket, propagateWinners, migrateBracketStructure } from '../bracketEngine';
 import { saveBracketState, loadBracketState } from '../storage';
 import './BracketPage.css';
 
@@ -22,6 +22,11 @@ export const BracketPage: React.FC = () => {
       );
       const hasUpperFinal = saved.matches.some(m => m.round === 'UF');
       
+      // Проверяем правильное количество матчей в LB3 (должно быть 3) и LB4 (должно быть 2)
+      const lb3Matches = saved.matches.filter(m => m.round === 'LB3');
+      const lb4Matches = saved.matches.filter(m => m.round === 'LB4');
+      const hasCorrectStructure = lb3Matches.length === 3 && lb4Matches.length === 2;
+      
       // Обновляем информацию о турнире
       const updatedState = {
         ...saved,
@@ -30,13 +35,22 @@ export const BracketPage: React.FC = () => {
         organizer: 'Организатор отдел Маркетинг Вавилон-Т',
       };
       
-      // Если нет нижней сетки, пересоздаём сетку (миграция на Double Elimination)
+      // Если нет нижней сетки или верхнего финала, пересоздаём сетку
       if (!hasLowerBracket || !hasUpperFinal) {
         return {
           ...updatedState,
           matches: createInitialBracket(saved.teams),
         };
       }
+      
+      // Если структура неправильная (не хватает матчей), мигрируем с сохранением результатов
+      if (!hasCorrectStructure) {
+        return {
+          ...updatedState,
+          matches: migrateBracketStructure(saved.matches, saved.teams),
+        };
+      }
+      
       return updatedState;
     }
     return {
@@ -142,13 +156,28 @@ export const BracketPage: React.FC = () => {
       try {
         const imported = JSON.parse(json) as BracketState;
         if (imported.teams && imported.matches) {
-          // Пересчитываем победителей после импорта
-          const propagatedMatches = propagateWinners(imported.matches);
+          // Проверяем структуру и мигрируем при необходимости
+          const lb3Matches = imported.matches.filter(m => m.round === 'LB3');
+          const lb4Matches = imported.matches.filter(m => m.round === 'LB4');
+          const hasCorrectStructure = lb3Matches.length === 3 && lb4Matches.length === 2;
+          
+          let finalMatches = imported.matches;
+          if (!hasCorrectStructure) {
+            // Мигрируем структуру с сохранением результатов
+            finalMatches = migrateBracketStructure(imported.matches, imported.teams);
+          } else {
+            // Просто пересчитываем распространение команд
+            finalMatches = propagateWinners(imported.matches);
+          }
+          
           setBracketState({
             ...imported,
-            matches: propagatedMatches,
+            matches: finalMatches,
+            tournamentName: imported.tournamentName || 'Турнир по Counter-Strike 2 среди сотрудников Вавилон-Т и Вавилон-М',
+            tournamentDates: imported.tournamentDates || '2026',
+            organizer: imported.organizer || 'Организатор отдел Маркетинг Вавилон-Т',
           });
-          alert('Состояние сетки успешно импортировано!');
+          alert('Состояние сетки успешно импортировано! Структура автоматически обновлена.');
         } else {
           alert('Неверный формат состояния сетки');
         }

@@ -1,7 +1,7 @@
-export type Round = "R16" | "QF" | "SF" | "UF" | "LB1" | "LB2" | "LB3" | "LB4" | "LF" | "GF";
+export type Round = "R16" | "QF" | "SF" | "UF" | "LB1" | "LB2" | "LB3A" | "LB3" | "LB4A" | "LB4" | "LF" | "GF";
 // R16, QF, SF - верхняя сетка
 // UF - Upper Final (финал верхней сетки)
-// LB1, LB2, LB3, LB4 - раунды нижней сетки
+// LB1, LB2, LB3A, LB3, LB4A, LB4 - раунды нижней сетки
 // LF - Lower Final (финал нижней сетки)
 // GF - Grand Final (гранд-финал)
 
